@@ -32,19 +32,45 @@ def handle_query(user_query: str, wardrobe_choice: str) -> tuple[str, str, str]:
         A tuple of three strings:
             (listing_text, outfit_suggestion, fit_card)
         Each string maps to one of the three output panels in the UI.
-
-    TODO:
-        1. Guard against an empty query (return early with an error message).
-        2. Select the wardrobe based on wardrobe_choice.
-        3. Call run_agent() with the query and selected wardrobe.
-        4. If session["error"] is set, return the error in the first panel
-           and empty strings for the other two.
-        5. Otherwise, format session["selected_item"] into a readable listing_text
-           string and return it along with session["outfit_suggestion"] and
-           session["fit_card"].
     """
-    # TODO: implement this function
-    return "Agent not yet implemented.", "", ""
+    # Step 1: Guard against empty query
+    if not user_query or not user_query.strip():
+        return "Please enter a search query (e.g., 'vintage graphic tee under $30, size M').", "", ""
+
+    # Step 2: Select wardrobe based on choice
+    if "Empty" in wardrobe_choice:
+        wardrobe = get_empty_wardrobe()
+    else:
+        wardrobe = get_example_wardrobe()
+
+    # Step 3: Call run_agent
+    session = run_agent(user_query, wardrobe)
+
+    # Step 4: Handle errors
+    if session["error"]:
+        return session["error"], "", ""
+
+    # Step 5: Format and return results
+    selected_item = session["selected_item"]
+
+    # Format the listing info
+    listing_text = f"""
+**{selected_item['title']}**
+
+💰 Price: ${selected_item['price']}
+📍 Platform: {selected_item['platform'].capitalize()}
+✨ Condition: {selected_item['condition'].capitalize()}
+👗 Category: {selected_item['category'].capitalize()}
+🎨 Colors: {', '.join(selected_item['colors'])}
+🏷️ Brand: {selected_item['brand'] or 'Unknown'}
+🏷️ Size: {selected_item['size']}
+
+**Style tags:** {', '.join(selected_item['style_tags'])}
+
+**Description:** {selected_item['description']}
+"""
+
+    return listing_text, session["outfit_suggestion"], session["fit_card"]
 
 
 # ── interface ─────────────────────────────────────────────────────────────────
